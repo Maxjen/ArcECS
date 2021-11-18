@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "ArcSystemInternal.h"
 
 struct ARCECS_API FArcSystemBuilder

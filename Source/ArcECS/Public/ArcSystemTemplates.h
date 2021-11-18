@@ -3,6 +3,7 @@
 #pragma once
 
 #include "ArcWorld.h"
+#include "ArcRes.h"
 
 template<typename T>
 struct FArcRequiredTypeIDHelper
@@ -35,7 +36,7 @@ struct FArcRequiredTypeIDHelper<FArcEntityHandle&>
 };
 
 template<typename T>
-struct FArcRequiredTypeIDHelper<FArcResource<T>>
+struct FArcRequiredTypeIDHelper<FArcRes<T>>
 {
     static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
@@ -84,11 +85,11 @@ struct FArcGetArgumentForIDHelper<FArcEntityHandle&>
 };
 
 template<typename T>
-struct FArcGetArgumentForIDHelper<FArcResource<T>>
+struct FArcGetArgumentForIDHelper<FArcRes<T>>
 {
-    static FArcResource<T> GetArgument(FArcWorld& World, FArcArchetypeContainer* Container, int32 Index)
+    static FArcRes<T> GetArgument(FArcWorld& World, FArcArchetypeContainer* Container, int32 Index)
     {
-        return FArcResource<T>(World.GetResource<T>());
+        return FArcRes<T>(World.GetResource<T>());
     }
 };
 

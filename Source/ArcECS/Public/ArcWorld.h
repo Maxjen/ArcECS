@@ -2,10 +2,8 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "ArcArchetypeContainer.h"
 #include "ArcEntityHandle.h"
-#include "ArcResource.h"
 #include "ArcTypeID.h"
 
 class ARCECS_API FArcWorld
@@ -15,13 +13,27 @@ public:
 	TMap<FArcEntitySignature, TSharedPtr<FArcArchetypeContainer>> ArchetypeContainers;
 	
 private:
-
+	
 	struct FArcEntityData
 	{
 		uint16 Generation = 0;
 		uint16 IndexInContainer = 0;
 		FArcArchetypeContainer* Container = nullptr;
 	};
+	
+	class FArcResourceWrapperBase
+    {
+    public:
+        virtual ~FArcResourceWrapperBase() {}
+    };
+    
+    template<typename T>
+    class FArcResourceWrapper : public FArcResourceWrapperBase
+    {
+    public:
+        T Resource;
+        FArcResourceWrapper(T&& InResource) : Resource(InResource) {}
+    };
 
 	TArray<FArcEntityData> EntityDatas;
 	TArray<uint16> FreeIndices;

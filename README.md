@@ -1,6 +1,6 @@
 # ArcECS
 
-This is a simple ECS plugin for Unreal. The syntax was inspired by [Bevy](https://github.com/bevyengine/bevy) and [Legion](https://github.com/amethyst/legion).
+This is a simple ECS plugin for Unreal. The API was inspired by [Bevy](https://github.com/bevyengine/bevy) and [Legion](https://github.com/amethyst/legion).
 
 ## Code Example
 
@@ -22,7 +22,7 @@ struct FTestVelocity
 
 struct FTestSystems
 {
-	static void ApplyVelocity(FTestPosition& Position, FTestVelocity& Velocity, FArcResource<FTestDeltaTime> DeltaTime)
+	static void ApplyVelocity(FTestPosition& Position, FTestVelocity& Velocity, FArcRes<FTestDeltaTime> DeltaTime)
 	{
 		Position.Position += Velocity.Velocity * DeltaTime->Seconds;
 	}
@@ -98,7 +98,7 @@ Any kind of data can be added as a resource to the `FArcWorld` and then be used 
 ```cpp
 World.AddResource(FTestDeltaTime { 0.0f });
 
-void TestSystem(FArcResource<FTestDeltaTime> DeltaTime)
+void TestSystem(FArcRes<FTestDeltaTime> DeltaTime)
 {
 	UE_LOG(LogTemp, Warning, TEXT("DeltaTime %f"), DeltaTime->Seconds);
 }
@@ -109,7 +109,7 @@ void TestSystem(FArcResource<FTestDeltaTime> DeltaTime)
 Systems are functions that are called for all entities that have the required set of components or exactly once if the function signature doesn't contain any entity specific data. Besides components a system can also request any resource, an`FArcEntityHandle` or the `FArcWorld`.
 ```cpp
 // Position is required, Velocity is optional
-void TestSystem(FTestPosition& Position, FTestVelocity* Velocity, FArcResource<FTestDeltaTime> DeltaTime)
+void TestSystem(FTestPosition& Position, FTestVelocity* Velocity, FArcRes<FTestDeltaTime> DeltaTime)
 {
 	if (Velocity)
 	{
