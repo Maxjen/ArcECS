@@ -49,7 +49,7 @@ struct FArcRequiredTypeIDHelper<FArcRes<T>>
 };
 
 template<>
-struct FArcRequiredTypeIDHelper<FArcWorld>
+struct FArcRequiredTypeIDHelper<FArcWorld&>
 {
     static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
