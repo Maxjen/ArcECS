@@ -94,7 +94,7 @@ struct FArcGetArgumentForIDHelper<FArcRes<T>>
 };
 
 template<>
-struct FArcGetArgumentForIDHelper<FArcWorld>
+struct FArcGetArgumentForIDHelper<FArcWorld&>
 {
     static FArcWorld& GetArgument(FArcWorld& World, FArcArchetypeContainer* Container, int32 Index)
     {

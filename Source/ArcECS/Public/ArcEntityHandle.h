@@ -11,6 +11,7 @@ private:
 
 public:
 
+	FArcEntityHandle() = default;
 	FArcEntityHandle(uint16 InIndex, uint16 InGeneration) : Index(InIndex), Generation(InGeneration) {}
 
 	uint16 GetIndex() const { return Index; }

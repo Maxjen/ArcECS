@@ -78,7 +78,7 @@ public:
     }
 
     template<typename T>
-    static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool bOutResourcesAvailable)
+    static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
         return FArcRequiredTypeIDHelper<T>::GetRequiredTypeID(World, bOutCallForEachEntity, bOutResourcesAvailable);
     }
