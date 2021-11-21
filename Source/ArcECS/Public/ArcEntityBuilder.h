@@ -20,11 +20,11 @@ class FArcComponentWrapper : public FArcComponentWrapperBase
 public:
 
     T Component;
-    FArcComponentWrapper(T&& InComponent) : Component(InComponent) {}
+    FArcComponentWrapper(T&& InComponent) : Component(MoveTemp(InComponent)) {}
     virtual void AddToArchetypeContainer(FArcArchetypeContainer& Container) override
     {
         FArcComponentArray<T>& ComponentArray = Container.FindOrAddComponentArray<T>();
-        ComponentArray.Components.Add(Component);
+        ComponentArray.Components.Add(MoveTemp(Component));
     }
 };
 
