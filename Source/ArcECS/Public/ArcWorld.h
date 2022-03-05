@@ -40,7 +40,12 @@ private:
 
 	TMap<FArcTypeID, TSharedPtr<FArcResourceWrapperBase>> Resources;
 
+	bool bLocked = false;
+
 public:
+
+	void Lock();
+	void Unlock();
 
 	FArcEntityHandle SpawnEntity(class FArcEntityBuilder& EntityBuilder);
 	void DeleteEntity(const FArcEntityHandle& Entity);
@@ -85,6 +90,11 @@ public:
 	template<typename T>
 	void AddComponent(const FArcEntityHandle& Entity, T&& Component)
 	{
+		if (!ensureMsgf(!bLocked, TEXT("Attempting to add a component during iteration!")))
+		{
+			return;
+		}
+		
 		if (!IsValid(Entity) || HasComponent<T>(Entity)) { return; }
 
 		FArcEntityData& EntityData = EntityDatas[Entity.GetIndex()];
@@ -123,6 +133,11 @@ public:
 	template<typename T>
 	void RemoveComponent(const FArcEntityHandle& Entity)
 	{
+		if (!ensureMsgf(!bLocked, TEXT("Attempting to remove a component during iteration!")))
+		{
+			return;
+		}
+		
 		if (!IsValid(Entity) || !HasComponent<T>(Entity)) { return; }
 		
 		FArcEntityData& EntityData = EntityDatas[Entity.GetIndex()];

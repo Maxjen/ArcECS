@@ -3,8 +3,23 @@
 #include "ArcWorld.h"
 #include "ArcEntityBuilder.h"
 
+void FArcWorld::Lock()
+{
+    bLocked = true;
+}
+
+void FArcWorld::Unlock()
+{
+    bLocked = false;
+}
+
 FArcEntityHandle FArcWorld::SpawnEntity(FArcEntityBuilder& EntityBuilder)
 {
+    if (!ensureMsgf(!bLocked, TEXT("Attempting to spawn an entity during iteration!")))
+    {
+        return FArcEntityHandle();
+    }
+    
     const uint16 Index = [&]()
     {
         if (FreeIndices.Num() > 0)
@@ -33,6 +48,11 @@ FArcEntityHandle FArcWorld::SpawnEntity(FArcEntityBuilder& EntityBuilder)
 
 void FArcWorld::DeleteEntity(const FArcEntityHandle& Entity)
 {
+    if (!ensureMsgf(!bLocked, TEXT("Attempting to delete an entity during iteration!")))
+    {
+        return;
+    }
+    
     if (!IsValid(Entity)) { return; }
     FArcEntityData& EntityData = EntityDatas[Entity.GetIndex()];
     FArcArchetypeContainer& Container = *EntityData.Container;

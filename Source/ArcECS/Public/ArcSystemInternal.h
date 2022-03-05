@@ -30,6 +30,7 @@ public:
 
         if (bCallForEachEntity)
         {
+            World.Lock();
             for (const auto& Entry : World.ArchetypeContainers)
             {
                 const FArcEntitySignature& ContainerSignature = Entry.Key;
@@ -50,6 +51,7 @@ public:
                     Function(FArcGetArgumentForIDHelper<Args>::GetArgument(World, &Container, i)...);
                 }
             }
+            World.Unlock();
         }
         else
         {
