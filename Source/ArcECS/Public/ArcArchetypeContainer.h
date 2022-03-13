@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ArcEntityHandle.h"
+#include "ArcEntityHandleInternal.h"
 #include "ArcTypeID.h"
 #include "ArcEntitySignature.h"
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "ArcArchetypeContainer.h"
-#include "ArcEntityHandle.h"
+#include "ArcEntityHandleInternal.h"
 #include "ArcTypeID.h"
 
 class ARCECS_API FArcWorld
