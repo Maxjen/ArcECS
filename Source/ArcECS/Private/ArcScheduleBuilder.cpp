@@ -233,7 +233,7 @@ TArray<FArcSystemBuilder*> FArcScheduleBuilder::GenerateOrderedSystemArray(FArcS
                 FArcSystemBuilder& OtherSystem = OtherEntry.Value;
                 if (OtherSystem.Labels.Contains(Before))
                 {
-                    OtherSystem.AfterLabels.AddUnique(Before);
+                    OtherSystem.AfterLabels.AddUnique(System.GetName());
                 }
             }
         }
