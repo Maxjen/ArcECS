@@ -3,13 +3,13 @@
 #pragma once
 
 #include "ArcSystemTemplates.h"
-#include "ArcWorld.h"
+#include "ArcUniverse.h"
 
 class FArcSystemInternalBase
 {
 public:
     virtual ~FArcSystemInternalBase() {}
-    virtual void Execute(FArcWorld& World) {}
+    virtual void Execute(FArcUniverse& World) {}
 };
 
 template<typename... Args>
@@ -21,7 +21,7 @@ public:
 
 public:
 
-    virtual void Execute(FArcWorld& World) override
+    virtual void Execute(FArcUniverse& World) override
     {
         bool bResourcesAvailable = true;
         bool bCallForEachEntity = false;
@@ -59,7 +59,7 @@ public:
         }
     }
 
-    static FArcEntitySignature GetMinimalSignature(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
+    static FArcEntitySignature GetMinimalSignature(FArcUniverse& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
         FArcEntitySignature Signature;
         AppendTypeIDsRecursive(Signature, GetRequiredTypeID<Args>(World, bOutCallForEachEntity, bOutResourcesAvailable)...);
@@ -80,7 +80,7 @@ public:
     }
 
     template<typename T>
-    static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
+    static TOptional<FArcTypeID> GetRequiredTypeID(FArcUniverse& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
         return FArcRequiredTypeIDHelper<T>::GetRequiredTypeID(World, bOutCallForEachEntity, bOutResourcesAvailable);
     }

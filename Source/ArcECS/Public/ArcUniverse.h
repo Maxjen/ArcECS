@@ -3,10 +3,11 @@
 #pragma once
 
 #include "ArcArchetypeContainer.h"
+#include "ArcCommandsInternal.h"
 #include "ArcEntityHandleInternal.h"
 #include "ArcTypeID.h"
 
-class ARCECS_API FArcWorld
+class ARCECS_API FArcUniverse
 {
 public:
 
@@ -40,6 +41,8 @@ private:
 
 	TMap<FArcTypeID, TSharedPtr<FArcResourceWrapperBase>> Resources;
 
+	FArcCommands Commands;
+
 	bool bLocked = false;
 
 public:
@@ -47,13 +50,16 @@ public:
 	void Lock();
 	void Unlock();
 
+	FArcCommands& GetCommands();
+	void ExecuteCommands();
+
 	FArcEntityHandle SpawnEntity(class FArcEntityBuilder& EntityBuilder);
 	void DeleteEntity(const FArcEntityHandle& Entity);
 
 	bool IsValid(const FArcEntityHandle& Entity) const;
 
 	template<typename T>
-	FArcWorld& AddResource(T&& Resource)
+	FArcUniverse& AddResource(T&& Resource)
 	{
 		Resources.Emplace(FArcTypeIDHelper::Get<T>(), MakeShared<FArcResourceWrapper<T>>(MoveTemp(Resource)));
 		return *this;
@@ -123,7 +129,7 @@ public:
 		}
 
 		FArcComponentArray<T>& ComponentArray = NewContainer->FindOrAddComponentArray<T>();
-		ComponentArray.Components.Add(Component);
+		ComponentArray.Components.Add(MoveTemp(Component));
 		NewContainer->EntityHandles.Add(Entity);
 
 		EntityData.Container = NewContainer.Get();

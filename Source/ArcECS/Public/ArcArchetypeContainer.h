@@ -75,5 +75,5 @@ template <typename T>
 void FArcComponentArray<T>::MoveToContainer(uint16 Index, FArcArchetypeContainer& Container)
 {
     FArcComponentArray<T>& ComponentArray = Container.FindOrAddComponentArray<T>();
-    ComponentArray.Components.Add(Components[Index]);
+    ComponentArray.Components.Add(MoveTemp(Components[Index]));
 }

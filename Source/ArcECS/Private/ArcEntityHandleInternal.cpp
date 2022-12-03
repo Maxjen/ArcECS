@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ArcEntityHandleInternal.h"
-#include "ArcWorld.h"
+#include "ArcUniverse.h"
 
-bool FArcEntityHandle::IsValid(const FArcWorld& World) const
+bool FArcEntityHandle::IsValid(const FArcUniverse& Universe) const
 {
-    return World.IsValid(*this);
+    return Universe.IsValid(*this);
 }

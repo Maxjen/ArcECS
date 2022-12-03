@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ArcEntityBuilder.h"
-#include "ArcWorld.h"
+#include "ArcUniverse.h"
 
 FArcEntitySignature FArcEntityBuilder::ComputeEntitySignature() const
 {
@@ -13,7 +13,7 @@ FArcEntitySignature FArcEntityBuilder::ComputeEntitySignature() const
     return Signature;
 }
 
-FArcEntityHandle FArcEntityBuilder::SpawnEntity(FArcWorld& World)
+FArcEntityHandle FArcEntityBuilder::SpawnEntity(FArcUniverse& Universe)
 {
-    return World.SpawnEntity(*this);
+    return Universe.SpawnEntity(*this);
 }

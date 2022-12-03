@@ -44,6 +44,6 @@ public:
     }
 
     FArcEntitySignature ComputeEntitySignature() const;
-    FArcEntityHandle SpawnEntity(class FArcWorld& World);
+    FArcEntityHandle SpawnEntity(class FArcUniverse& Universe);
 
 };

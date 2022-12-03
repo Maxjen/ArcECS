@@ -40,7 +40,7 @@ class TEST_API ATestGameState : public AGameStateBase
 
 private:
 
-	FArcWorld World;
+	FArcUniverse Universe;
 	FArcSchedule TickSchedule;
 
 public:
@@ -51,29 +51,29 @@ public:
 	{
 		Super::PostInitializeComponents();
 	
-		World.AddResource(FTestDeltaTime { 0.0f });
+		Universe.AddResource(FTestDeltaTime { 0.0f });
 	
 		TickSchedule = FArcScheduleBuilder()
-			.AddSystem(ArcSystem(TEXT("ApplyVelocity"), &FTestSystems::ApplyVelocity))
-			.AddSystem(ArcSystem(TEXT("LogPosition"), &FTestSystems::LogPosition)
+			.AddSystem(ArcSystem(&FTestSystems::ApplyVelocity), FArcSystemConfig(TEXT("ApplyVelocity"))
+			.AddSystem(ArcSystem(&FTestSystems::LogPosition, FArcSystemConfig())
 				.After(TEXT("ApplyVelocity")))
 			.BuildSchedule();
 
 		FArcEntityBuilder()
 			.AddComponent(FTestPosition { FVector(0.0f, 0.0f, 0.0f) })
 			.AddComponent(FTestVelocity { FVector(10.0f, 10.0f, 0.0f) })
-			.SpawnEntity(World);
+			.SpawnEntity(Universe);
 	}
 
 	virtual void Tick(float DeltaSeconds) override
 	{
 		Super::Tick(DeltaSeconds);
 
-		if (FTestDeltaTime* DeltaTime = World.GetResource<FTestDeltaTime>())
+		if (FTestDeltaTime* DeltaTime = Universe.GetResource<FTestDeltaTime>())
 		{
 			DeltaTime->Seconds = DeltaSeconds;
 		}
-		TickSchedule.Execute(World);
+		TickSchedule.Execute(Universe);
 	}
 
    // ...
@@ -86,17 +86,17 @@ Components can be attached to entities during or after creation.
 ```cpp
 FArcEntityHandle Entity = FArcEntityBuilder()
 	.AddComponent<FTestPosition>(FTestPosition { FVector(0.0f, 0.0f, 0.0f) })
-	.SpawnEntity(World);
+	.SpawnEntity(Universe);
 
-World.AddComponent(Entity, FTestVelocity { FVector(10.0f, 20.0f, 30.0f) });
-World.RemoveComponent<FTestPosition>(Entity);
+Universe.AddComponent(Entity, FTestVelocity { FVector(10.0f, 20.0f, 30.0f) });
+Universe.RemoveComponent<FTestPosition>(Entity);
 ```
 
 ## Resources
 
-Any kind of data can be added as a resource to the `FArcWorld` and then be used within systems.
+Any kind of data can be added as a resource to the `FArcUniverse` and then be used within systems.
 ```cpp
-World.AddResource(FTestDeltaTime { 0.0f });
+Universe.AddResource(FTestDeltaTime { 0.0f });
 
 void TestSystem(FArcRes<FTestDeltaTime> DeltaTime)
 {
@@ -106,7 +106,7 @@ void TestSystem(FArcRes<FTestDeltaTime> DeltaTime)
 
 ## Systems
 
-Systems are functions that are called for all entities that have the required set of components or exactly once if the function signature doesn't contain any entity specific data. Besides components a system can also request any resource, an`FArcEntityHandle` or the `FArcWorld`.
+Systems are functions that are called for all entities that have the required set of components or exactly once if the function signature doesn't contain any entity specific data. Besides components a system can also request any resource, an`FArcEntityHandle` or the `FArcUniverse`.
 ```cpp
 // Position is required, Velocity is optional
 void TestSystem(FTestPosition& Position, FTestVelocity* Velocity, FArcRes<FTestDeltaTime> DeltaTime)
@@ -123,12 +123,12 @@ void TestSystem(FTestPosition& Position, FTestVelocity* Velocity, FArcRes<FTestD
 Schedules are used to organize systems. When adding systems `Before` and `After` dependencies can be assigned. `AddSystemSeq` can be used as a shorthand to add an `After` dependency to the previously added system.
 ```cpp
 FArcSchedule Schedule = FArcScheduleBuilder()
-	.AddSystem(ArcSystem(TEXT("System_1"), &FTestSystems::System_1))
-	.AddSystem(ArcSystem(TEXT("System_2"), &FTestSystems::System_2))
+	.AddSystem(&FTestSystems::System_1, FArcSystemConfig(TEXT("System_1")))
+	.AddSystem(&FTestSystems::System_2, FArcSystemConfig()
 		.Before(TEXT("System_1")
-		.After(TEXT("System_3")
-	.AddSystem(ArcSystem(TEXT("System_3"), &FTestSystems::System_3))
-	.AddSystemSeq(ArcSystem(TEXT("System_4"), &FTestSystems::System_4))
+		.After(TEXT("System_3"))
+	.AddSystem(&FTestSystems::System_3, FArcSystemConfig(TEXT("System_3")))
+	.AddSystemSeq(&FTestSystems::System_4))
 	.BuildSchedule();
 // Resolved system order should be: System_3, System_4, System_2, System_1
 ```
@@ -138,15 +138,15 @@ FArcSchedule Schedule = FArcScheduleBuilder()
 SystemSets can be used to apply properties to multiple Systems at once.
 ```cpp
 ScheduleBuilder
-	.AddSystem(ArcSystem(TEXT("StartPlacement"), &FTestSystems::StartPlacement))
+	.AddSystem(&FTestSystems::StartPlacement, FArcSystemConfig(TEXT("StartPlacement")))
 	.AddSystemSet(FArcSystemSet()
 		.WithLabel(TEXT("Placement_Tick"))
 		.After(TEXT("StartPlacement"))
-		.AddSystem(ArcSystem(TEXT("AdjustRotation"), &FTestSystems::AdjustRotation))
-		.AddSystemSeq(ArcSystem(TEXT("SnapToGrid"), &FTestSystems::SnapToGrid))
+		.AddSystem(&FTestSystems::AdjustRotation, FArcSystemConfig(TEXT("AdjustRotation")))
+		.AddSystemSeq(&FTestSystems::SnapToGrid, FArcSystemConfig(TEXT("SnapToGrid")))
 	)
-	.AddSystem(ArcSystem(TEXT("TryPlace"), &FTestSystems::TryPlace))
-		.After(TEXT("Placement_Tick");
+	.AddSystem(&FTestSystems::TryPlace, FArcSystemConfig(TEXT("TryPlace"))
+		.After(TEXT("Placement_Tick")));
 ```
 
 ## Stages
@@ -156,10 +156,10 @@ Each schedule contains a `DefaultStage`, but additional stages can be created if
 ScheduleBuilder
 	.AddStageBefore(TEXT("PreparationStage"), FArcScheduleStage::DefaultStage)
 	.AddStageAfter(TEXT("CleanUpStage"), FArcScheduleStage::DefaultStage)
-	.AddSystemToStage(TEXT("CleanUpStage"), ArcSystem(TEXT("ClearEvents"), 
-&FTestSystems::ClearEvents))
-	.AddSystemSetToStage(TEXT("PreparationStage"), FArcSystemSet(TEXT("PreparationSystems")
-		.AddSystem(ArcSystem(TEXT("System_1"), &FTestSystems::System_1))
-		.AddSystem(ArcSystem(TEXT("System_2"), &FTestSystems::System_2))
+	.AddSystemToStage(TEXT("CleanUpStage"), &FTestSystems::ClearEvents)
+	.AddSystemSetToStage(TEXT("PreparationStage"), FArcSystemSet()
+		.WithLabel(TEXT("PreparationSystems"))
+		.AddSystem(&FTestSystems::System_1)
+		.AddSystem(&FTestSystems::System_2)
 	);
 ```

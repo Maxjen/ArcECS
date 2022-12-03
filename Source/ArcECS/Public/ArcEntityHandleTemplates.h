@@ -3,16 +3,16 @@
 #pragma once
 
 #include "ArcEntityHandleInternal.h"
-#include "ArcWorld.h"
+#include "ArcUniverse.h"
 
 template<typename T>
-inline bool FArcEntityHandle::HasComponent(const FArcWorld& World) const
+inline bool FArcEntityHandle::HasComponent(const FArcUniverse& Universe) const
 {
-    return World.HasComponent<T>(*this);
+    return Universe.HasComponent<T>(*this);
 }
 
 template<typename T>
-inline T* FArcEntityHandle::GetComponent(const FArcWorld& World) const
+inline T* FArcEntityHandle::GetComponent(const FArcUniverse& Universe) const
 {
-    return World.GetComponent<T>(*this);
+    return Universe.GetComponent<T>(*this);
 }

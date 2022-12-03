@@ -17,6 +17,8 @@ public class ArcECS : ModuleRules
 			
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"CoreUObject",
+			"Engine",
+			"DeveloperSettings",
 		});
 		
 		DynamicallyLoadedModuleNames.AddRange(new string[] {});

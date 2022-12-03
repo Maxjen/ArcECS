@@ -4,11 +4,19 @@
 
 DEFINE_LOG_CATEGORY(LogArcECS);
 
-const FName FArcScheduleStage::DefaultStage = TEXT("DefaultStage");
-
 FArcScheduleBuilder::FArcScheduleBuilder()
 {
     AddStage(FArcScheduleStage::DefaultStage);
+}
+
+FArcScheduleBuilder& FArcScheduleBuilder::AddUnrealStages()
+{
+    AddStageAfter(FArcScheduleStage::PrePhysicsStage, FArcScheduleStage::DefaultStage);
+    AddStageAfter(FArcScheduleStage::DuringPhysicsStage, FArcScheduleStage::PrePhysicsStage);
+    AddStageAfter(FArcScheduleStage::PostPhysicsStage, FArcScheduleStage::DuringPhysicsStage);
+    AddStageAfter(FArcScheduleStage::PostUpdateWorkStage, FArcScheduleStage::PostPhysicsStage);
+    AddStageAfter(FArcScheduleStage::LastDemotableStage, FArcScheduleStage::PostUpdateWorkStage);
+    return *this;
 }
 
 FArcScheduleBuilder& FArcScheduleBuilder::AddStage(const FName& StageLabel)
@@ -19,14 +27,14 @@ FArcScheduleBuilder& FArcScheduleBuilder::AddStage(const FName& StageLabel)
 
 FArcScheduleBuilder& FArcScheduleBuilder::AddStageAfter(const FName& StageLabel, const FName& TargetStageLabel)
 {
-    FArcScheduleStage& Stage = AddStageInternal(StageLabel);
+    FArcScheduleStageConfig& Stage = AddStageInternal(StageLabel);
     Stage.AfterLabels.Add(TargetStageLabel);
     return *this;
 }
 
 FArcScheduleBuilder& FArcScheduleBuilder::AddStageBefore(const FName& StageLabel, const FName& TargetStageLabel)
 {
-    FArcScheduleStage& Stage = AddStageInternal(StageLabel);
+    FArcScheduleStageConfig& Stage = AddStageInternal(StageLabel);
     Stage.BeforeLabels.Add(TargetStageLabel);
     return *this;
 }
@@ -54,7 +62,7 @@ FArcScheduleBuilder& FArcScheduleBuilder::AddSystemSeq(const FArcSystemBuilder& 
 
 FArcScheduleBuilder& FArcScheduleBuilder::AddSystemToStage(const FName& StageLabel, const FArcSystemBuilder& System)
 {
-    FArcScheduleStage& Stage = Stages.FindOrAdd(StageLabel);
+    FArcScheduleStageConfig& Stage = Stages.FindOrAdd(StageLabel);
     if (Stage.Systems.Contains(System.GetName()))
     {
         UE_LOG(LogArcECS, Fatal, TEXT("Trying to add system with already existing name '%s'!"), *System.GetName().ToString());
@@ -106,35 +114,38 @@ FArcSchedule FArcScheduleBuilder::BuildSchedule()
     }
     bWasScheduleBuilt = true;
     
-    TArray<FArcScheduleStage*> StagesOrdered = GenerateOrderedStageArray();
+    TArray<FArcScheduleStageConfig*> StagesOrdered = GenerateOrderedStageArray();
 
-	//TArray<TFunction<void(class UWorld&)>> AllSystems;
-	TArray<TSharedPtr<FArcSystemInternalBase>> AllSystems;
+    FArcSchedule Schedule;
+
     for (int32 i = 0; i < StagesOrdered.Num(); ++i)
     {
-        FArcScheduleStage* Stage = StagesOrdered[i];
+        FArcScheduleStageConfig* Stage = StagesOrdered[i];
         FString SystemsString = TEXT("[ ");
         TArray<FArcSystemBuilder*> SystemsOrdered = GenerateOrderedSystemArray(*Stage);
+        TArray<TSharedPtr<FArcSystemInternalBase>> StageSystems;
         for (const FArcSystemBuilder* System : SystemsOrdered)
         {
             SystemsString.Append(FString::Printf(TEXT("%s, "), *System->GetName().ToString()));
-            AllSystems.Add(System->SystemInternal);
+            StageSystems.Add(System->SystemInternal);
         }
         SystemsString.Append(TEXT(" ]"));
         
         UE_LOG(LogArcECS, Warning, TEXT("Stage %d: '%s'"), i, *Stage->StageLabel.ToString());
         UE_LOG(LogArcECS, Warning, TEXT("%s"), *SystemsString);
+
+        Schedule.AddStage(Stage->StageLabel, StageSystems);
     }
     
-    return FArcSchedule(AllSystems);
+    return Schedule;
 }
 
-FArcScheduleStage& FArcScheduleBuilder::AddStageInternal(const FName& StageLabel)
+FArcScheduleStageConfig& FArcScheduleBuilder::AddStageInternal(const FName& StageLabel)
 {
     CurrentStage = NAME_None;
     CurrentSystem = NAME_None;
     
-    FArcScheduleStage& Stage = Stages.FindOrAdd(StageLabel);
+    FArcScheduleStageConfig& Stage = Stages.FindOrAdd(StageLabel);
     if (Stage.bWasAdded)
     {
         UE_LOG(LogArcECS, Fatal, TEXT("Trying to add already existing stage '%s'!"), *StageLabel.ToString());
@@ -144,7 +155,7 @@ FArcScheduleStage& FArcScheduleBuilder::AddStageInternal(const FName& StageLabel
     return Stage;
 }
 
-TArray<FArcScheduleStage*> FArcScheduleBuilder::GenerateOrderedStageArray()
+TArray<FArcScheduleStageConfig*> FArcScheduleBuilder::GenerateOrderedStageArray()
 {
     for (const auto& Entry : Stages)
     {
@@ -174,7 +185,7 @@ TArray<FArcScheduleStage*> FArcScheduleBuilder::GenerateOrderedStageArray()
     }
 
     TSet<FName> AddedStages;
-    TArray<FArcScheduleStage*> StagesOrdered;
+    TArray<FArcScheduleStageConfig*> StagesOrdered;
     bool bChanged = true;
     while (bChanged)
     {
@@ -206,7 +217,7 @@ TArray<FArcScheduleStage*> FArcScheduleBuilder::GenerateOrderedStageArray()
     return StagesOrdered;
 }
 
-TArray<FArcSystemBuilder*> FArcScheduleBuilder::GenerateOrderedSystemArray(FArcScheduleStage& Stage)
+TArray<FArcSystemBuilder*> FArcScheduleBuilder::GenerateOrderedSystemArray(FArcScheduleStageConfig& Stage)
 {
     TSet<FName> AllSystemNames;
     TMap<FName, int32> AllSystemLabels;
@@ -278,7 +289,7 @@ TArray<FArcSystemBuilder*> FArcScheduleBuilder::GenerateOrderedSystemArray(FArcS
     return SystemsOrdered;
 }
 
-void FArcScheduleBuilder::GatherNamesAndLabels(const FArcScheduleStage& Stage, TSet<FName>& OutSystemNames, TMap<FName, int32>& OutSystemLabels)
+void FArcScheduleBuilder::GatherNamesAndLabels(const FArcScheduleStageConfig& Stage, TSet<FName>& OutSystemNames, TMap<FName, int32>& OutSystemLabels)
 {
     OutSystemNames.Reset();
     OutSystemLabels.Reset();

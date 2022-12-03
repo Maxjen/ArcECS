@@ -1,19 +1,34 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ArcWorld.h"
+#include "ArcUniverse.h"
 #include "ArcEntityBuilder.h"
 
-void FArcWorld::Lock()
+void FArcUniverse::Lock()
 {
     bLocked = true;
 }
 
-void FArcWorld::Unlock()
+void FArcUniverse::Unlock()
 {
     bLocked = false;
 }
 
-FArcEntityHandle FArcWorld::SpawnEntity(FArcEntityBuilder& EntityBuilder)
+FArcCommands& FArcUniverse::GetCommands()
+{
+    return Commands;
+}
+
+void FArcUniverse::ExecuteCommands()
+{
+    for (TSharedPtr<FArcCommand>& Command : Commands.Commands)
+    {
+        if (!Command) { continue; }
+        Command->Execute(*this);
+    }
+    Commands.Commands.Reset();
+}
+
+FArcEntityHandle FArcUniverse::SpawnEntity(FArcEntityBuilder& EntityBuilder)
 {
     if (!ensureMsgf(!bLocked, TEXT("Attempting to spawn an entity during iteration!")))
     {
@@ -46,7 +61,7 @@ FArcEntityHandle FArcWorld::SpawnEntity(FArcEntityBuilder& EntityBuilder)
     return Entity;
 }
 
-void FArcWorld::DeleteEntity(const FArcEntityHandle& Entity)
+void FArcUniverse::DeleteEntity(const FArcEntityHandle& Entity)
 {
     if (!ensureMsgf(!bLocked, TEXT("Attempting to delete an entity during iteration!")))
     {
@@ -72,7 +87,7 @@ void FArcWorld::DeleteEntity(const FArcEntityHandle& Entity)
     FreeIndices.Add(Entity.GetIndex());
 }
 
-bool FArcWorld::IsValid(const FArcEntityHandle& Entity) const
+bool FArcUniverse::IsValid(const FArcEntityHandle& Entity) const
 {
     return
         EntityDatas.IsValidIndex(Entity.GetIndex()) &&

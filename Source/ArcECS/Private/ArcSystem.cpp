@@ -2,6 +2,29 @@
 
 #include "ArcSystem.h"
 
+FArcSystemConfig::FArcSystemConfig(const FName& Label)
+{
+    Labels.Add(Label);
+}
+
+FArcSystemConfig& FArcSystemConfig::WithLabel(const FName& Label)
+{
+    Labels.AddUnique(Label);
+    return *this;
+}
+
+FArcSystemConfig& FArcSystemConfig::After(const FName& Label)
+{
+    AfterLabels.AddUnique(Label);
+    return *this;
+}
+
+FArcSystemConfig& FArcSystemConfig::Before(const FName& Label)
+{
+    BeforeLabels.AddUnique(Label);
+    return *this;
+}
+
 FArcSystemBuilder& FArcSystemBuilder::WithLabel(const FName& Label)
 {
     Labels.AddUnique(Label);

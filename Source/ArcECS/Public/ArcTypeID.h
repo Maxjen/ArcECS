@@ -11,7 +11,6 @@ struct FArcTypeIDHelper
     template<typename T>
     static FArcTypeID Get()
     {
-        std::type_index TypeIndex = std::type_index(typeid(T));
-        return *reinterpret_cast<size_t*>(&TypeIndex);
+        return typeid(T).hash_code();
     }
 };

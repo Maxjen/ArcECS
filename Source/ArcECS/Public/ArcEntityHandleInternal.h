@@ -17,11 +17,26 @@ public:
 	uint16 GetIndex() const { return Index; }
 	uint16 GetGeneration() const { return Generation; }
 
-	bool IsValid(const class FArcWorld& World) const;
+	bool IsValid(const class FArcUniverse& Universe) const;
 	
 	template<typename T>
-	bool HasComponent(const class FArcWorld& World) const;
+	bool HasComponent(const class FArcUniverse& Universe) const;
 	
 	template<typename T>
-	T* GetComponent(const class FArcWorld& World) const;
+	T* GetComponent(const class FArcUniverse& Universe) const;
+
+	FORCEINLINE bool operator==(const FArcEntityHandle& Other) const
+	{
+		return Index == Other.Index && Generation == Other.Generation;
+	}
+	
+	FORCEINLINE bool operator!=(const FArcEntityHandle& Other) const
+	{
+		return Index != Other.Index || Generation != Other.Generation;
+	}
+	
+	friend uint32 GetTypeHash(const FArcEntityHandle& Entity)
+	{
+		return HashCombine(GetTypeHash(Entity.Index), GetTypeHash(Entity.Generation));
+	}
 };

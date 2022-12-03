@@ -7,11 +7,9 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogArcECS, Log, All);
 
-struct ARCECS_API FArcScheduleStage
+struct FArcScheduleStageConfig
 {
 public:
-
-	static const FName DefaultStage;
 
 	FName StageLabel;
 
@@ -28,7 +26,7 @@ struct ARCECS_API FArcScheduleBuilder
 {
 private:
 
-	TMap<FName, FArcScheduleStage> Stages;
+	TMap<FName, FArcScheduleStageConfig> Stages;
 	bool bWasScheduleBuilt = false;
 
 	FName CurrentStage = NAME_None;
@@ -38,6 +36,7 @@ public:
 
 	FArcScheduleBuilder();
 	
+	FArcScheduleBuilder& AddUnrealStages();
 	FArcScheduleBuilder& AddStage(const FName& StageLabel);
 	FArcScheduleBuilder& AddStageAfter(const FName& StageLabel, const FName& TargetStageLabel);
 	FArcScheduleBuilder& AddStageBefore(const FName& StageLabel, const FName& TargetStageLabel);
@@ -49,12 +48,69 @@ public:
 	FArcScheduleBuilder& AddSystemSet(const FArcSystemSet& SystemSet);
 	FArcScheduleBuilder& AddSystemSetToStage(const FName& StageLabel, const FArcSystemSet& SystemSet);
 	
+	template<typename... Args>
+	FArcScheduleBuilder& AddSystem(void(*Function)(Args...))
+	{
+		return AddSystem(ArcSystem(Function));
+	}
+	
+	template<typename... Args>
+	FArcScheduleBuilder& AddSystem(void(*Function)(Args...), const FArcSystemConfig& Config)
+	{
+		FArcSystemBuilder SystemBuilder = ArcSystem(Function);
+		if (Config.Labels.Num() > 0)
+		{
+			SystemBuilder.Labels = Config.Labels;
+		}
+		SystemBuilder.AfterLabels = Config.AfterLabels;
+		SystemBuilder.BeforeLabels = Config.BeforeLabels;
+		return AddSystem(SystemBuilder);
+	}
+	
+	template<typename... Args>
+	FArcScheduleBuilder& AddSystemSeq(void(*Function)(Args...))
+	{
+		return AddSystemSeq(ArcSystem(Function));
+	}
+	
+	template<typename... Args>
+	FArcScheduleBuilder& AddSystemSeq(void(*Function)(Args...), const FArcSystemConfig& Config)
+	{
+		FArcSystemBuilder SystemBuilder = ArcSystem(Function);
+		if (Config.Labels.Num() > 0)
+		{
+			SystemBuilder.Labels = Config.Labels;
+		}
+		SystemBuilder.AfterLabels = Config.AfterLabels;
+		SystemBuilder.BeforeLabels = Config.BeforeLabels;
+		return AddSystemSeq(SystemBuilder);
+	}
+	
+	template<typename... Args>
+	FArcScheduleBuilder& AddSystemToStage(const FName& StageLabel, void(*Function)(Args...))
+	{
+		return AddSystemToStage(StageLabel, ArcSystem(Function));
+	}
+	
+	template<typename... Args>
+	FArcScheduleBuilder& AddSystemToStage(const FName& StageLabel, void(*Function)(Args...), const FArcSystemConfig& Config)
+	{
+		FArcSystemBuilder SystemBuilder = ArcSystem(Function);
+		if (Config.Labels.Num() > 0)
+		{
+			SystemBuilder.Labels = Config.Labels;
+		}
+		SystemBuilder.AfterLabels = Config.AfterLabels;
+		SystemBuilder.BeforeLabels = Config.BeforeLabels;
+		return AddSystemToStage(StageLabel, SystemBuilder);
+	}
+	
 	FArcSchedule BuildSchedule();
 
 private:
 
-	FArcScheduleStage& AddStageInternal(const FName& StageLabel);
-	TArray<FArcScheduleStage*> GenerateOrderedStageArray();
-	TArray<FArcSystemBuilder*> GenerateOrderedSystemArray(FArcScheduleStage& Stage);
-	static void GatherNamesAndLabels(const FArcScheduleStage& Stage, TSet<FName>& OutSystemNames, TMap<FName, int32>& OutSystemLabels);
+	FArcScheduleStageConfig& AddStageInternal(const FName& StageLabel);
+	TArray<FArcScheduleStageConfig*> GenerateOrderedStageArray();
+	static TArray<FArcSystemBuilder*> GenerateOrderedSystemArray(FArcScheduleStageConfig& Stage);
+	static void GatherNamesAndLabels(const FArcScheduleStageConfig& Stage, TSet<FName>& OutSystemNames, TMap<FName, int32>& OutSystemLabels);
 };

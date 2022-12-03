@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include "ArcWorld.h"
+#include "ArcUniverse.h"
 #include "ArcRes.h"
 
 template<typename T>
 struct FArcRequiredTypeIDHelper
 {
-    static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
+    static TOptional<FArcTypeID> GetRequiredTypeID(FArcUniverse& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
         bOutCallForEachEntity = true;
         return FArcTypeIDHelper::Get<T>();
@@ -18,7 +18,7 @@ struct FArcRequiredTypeIDHelper
 template<typename T>
 struct FArcRequiredTypeIDHelper<T*>
 {
-    static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
+    static TOptional<FArcTypeID> GetRequiredTypeID(FArcUniverse& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
         bOutCallForEachEntity = true;
         return TOptional<FArcTypeID>();
@@ -28,7 +28,7 @@ struct FArcRequiredTypeIDHelper<T*>
 template<>
 struct FArcRequiredTypeIDHelper<FArcEntityHandle&>
 {
-    static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
+    static TOptional<FArcTypeID> GetRequiredTypeID(FArcUniverse& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
         bOutCallForEachEntity = true;
         return TOptional<FArcTypeID>();
@@ -38,7 +38,7 @@ struct FArcRequiredTypeIDHelper<FArcEntityHandle&>
 template<typename T>
 struct FArcRequiredTypeIDHelper<FArcRes<T>>
 {
-    static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
+    static TOptional<FArcTypeID> GetRequiredTypeID(FArcUniverse& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
         if (!World.GetResource<T>())
         {
@@ -49,9 +49,18 @@ struct FArcRequiredTypeIDHelper<FArcRes<T>>
 };
 
 template<>
-struct FArcRequiredTypeIDHelper<FArcWorld&>
+struct FArcRequiredTypeIDHelper<FArcUniverse&>
 {
-    static TOptional<FArcTypeID> GetRequiredTypeID(FArcWorld& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
+    static TOptional<FArcTypeID> GetRequiredTypeID(FArcUniverse& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
+    {
+        return TOptional<FArcTypeID>();
+    }
+};
+
+template<>
+struct FArcRequiredTypeIDHelper<FArcCommands&>
+{
+    static TOptional<FArcTypeID> GetRequiredTypeID(FArcUniverse& World, bool& bOutCallForEachEntity, bool& bOutResourcesAvailable)
     {
         return TOptional<FArcTypeID>();
     }
@@ -60,7 +69,7 @@ struct FArcRequiredTypeIDHelper<FArcWorld&>
 template<typename T>
 struct FArcGetArgumentForIDHelper
 {
-    static T& GetArgument(FArcWorld& World, FArcArchetypeContainer* Container, int32 Index)
+    static T& GetArgument(FArcUniverse& World, FArcArchetypeContainer* Container, int32 Index)
     {
         return *Container->GetComponent<std::remove_reference_t<T>>(Index);
     }
@@ -69,7 +78,7 @@ struct FArcGetArgumentForIDHelper
 template<typename T>
 struct FArcGetArgumentForIDHelper<T*>
 {
-    static T* GetArgument(FArcWorld& World, FArcArchetypeContainer* Container, int32 Index)
+    static T* GetArgument(FArcUniverse& World, FArcArchetypeContainer* Container, int32 Index)
     {
         return Container->GetComponent<T>(Index);
     }
@@ -78,7 +87,7 @@ struct FArcGetArgumentForIDHelper<T*>
 template<>
 struct FArcGetArgumentForIDHelper<FArcEntityHandle&>
 {
-    static FArcEntityHandle& GetArgument(FArcWorld& World, FArcArchetypeContainer* Container, int32 Index)
+    static FArcEntityHandle& GetArgument(FArcUniverse& World, FArcArchetypeContainer* Container, int32 Index)
     {
         return *Container->GetEntityHandle(Index);
     }
@@ -87,17 +96,26 @@ struct FArcGetArgumentForIDHelper<FArcEntityHandle&>
 template<typename T>
 struct FArcGetArgumentForIDHelper<FArcRes<T>>
 {
-    static FArcRes<T> GetArgument(FArcWorld& World, FArcArchetypeContainer* Container, int32 Index)
+    static FArcRes<T> GetArgument(FArcUniverse& World, FArcArchetypeContainer* Container, int32 Index)
     {
         return FArcRes<T>(World.GetResource<T>());
     }
 };
 
 template<>
-struct FArcGetArgumentForIDHelper<FArcWorld&>
+struct FArcGetArgumentForIDHelper<FArcUniverse&>
 {
-    static FArcWorld& GetArgument(FArcWorld& World, FArcArchetypeContainer* Container, int32 Index)
+    static FArcUniverse& GetArgument(FArcUniverse& World, FArcArchetypeContainer* Container, int32 Index)
     {
         return World;
+    }
+};
+
+template<>
+struct FArcGetArgumentForIDHelper<FArcCommands&>
+{
+    static FArcCommands& GetArgument(FArcUniverse& World, FArcArchetypeContainer* Container, int32 Index)
+    {
+        return World.GetCommands();
     }
 };
