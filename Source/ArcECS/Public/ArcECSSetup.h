@@ -12,5 +12,6 @@ class ARCECS_API UArcECSSetup : public UObject
 public:
 
 	virtual void SetupECSForGame(class FArcUniverse& Universe, class UWorld& World, struct FArcScheduleBuilder& InitScheduleBuilder, struct FArcScheduleBuilder& TickScheduleBuilder) {}
+	virtual void SetupECSForServer(class FArcUniverse& Universe, class UWorld& World, struct FArcScheduleBuilder& InitScheduleBuilder, struct FArcScheduleBuilder& TickScheduleBuilder) {}
 	virtual void SetupECSForEditor(class FArcUniverse& Universe, class UWorld& World, struct FArcScheduleBuilder& InitScheduleBuilder, struct FArcScheduleBuilder& TickScheduleBuilder) {}
 };
