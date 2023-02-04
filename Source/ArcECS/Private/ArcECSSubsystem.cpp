@@ -35,7 +35,7 @@ void UArcECSSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 			UArcECSSetup* Setup = NewObject<UArcECSSetup>(this, SetupClass);
 			FArcScheduleBuilder InitScheduleBuilder;
 			FArcScheduleBuilder TickScheduleBuilder;
-			if (World->IsNetMode(ENetMode::NM_Client))
+			if (World->IsNetMode(ENetMode::NM_Client) || World->IsNetMode(ENetMode::NM_Standalone))
 			{
 				Setup->SetupECSForGame(Universe, *World, InitScheduleBuilder, TickScheduleBuilder);
 			}
