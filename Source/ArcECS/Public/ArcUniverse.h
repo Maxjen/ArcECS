@@ -75,6 +75,17 @@ public:
 		}
 		return nullptr;
 	}
+	
+	template<typename T>
+	const T* GetResource() const
+	{
+		if (const TSharedPtr<FArcResourceWrapperBase>* Wrapper = Resources.Find(FArcTypeIDHelper::Get<T>()))
+		{
+			FArcResourceWrapper<T>& WrapperCasted = *static_cast<FArcResourceWrapper<T>*>(Wrapper->Get());
+			return &WrapperCasted.Resource;
+		}
+		return nullptr;
+	}
 
 	template<typename T>
 	bool HasComponent(const FArcEntityHandle& Entity) const
